@@ -1,5 +1,3 @@
 The tool is a witness validator for Java.
 
-wit4java: An executable program built from wit4java.py.
-
-If you build it yourself, please install networkx first and configure the path.
+You should install networkx before running the tool.
