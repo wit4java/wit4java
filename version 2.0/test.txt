@@ -1,0 +1,61 @@
+import org.mockito.*;
+import org.mockito.stubbing.OngoingStubbing;
+import org.sosy_lab.sv_benchmarks.Verifier;
+
+public class test {
+    public static void main(String[] args) {
+        Mockito.mockStatic(Verifier.class);
+
+        String type = "Type";
+        String assumption = "Assumption";
+
+        String[] types = type.split(";");
+        String[] assumptions = assumption.split(";");
+
+
+        int n = types.length;
+        //OngoingStubbing <Integer> stubbing_int = Mockito.when(Verifier.nondetInt());
+        //OngoingStubbing <Short> stubbing_short = Mockito.when(Verifier.nondetShort());
+        //OngoingStubbing <Long> stubbing_long = Mockito.when(Verifier.nondetLong());
+        //OngoingStubbing <Float> stubbing_float = Mockito.when(Verifier.nondetFloat());
+        //OngoingStubbing <Double> stubbing_double = Mockito.when(Verifier.nondetDouble());
+        //OngoingStubbing <Boolean> stubbing_boolean = Mockito.when(Verifier.nondetBoolean());
+        //OngoingStubbing <Character> stubbing_char = Mockito.when(Verifier.nondetChar());
+        //OngoingStubbing <Byte> stubbing_byte = Mockito.when(Verifier.nondetByte());
+        for (int i = 0; i < n; i++) {
+
+            if ("int".equals(types[i])) {
+
+                //stubbing_int = stubbing_int.thenReturn(Integer.parseInt(assumptions[i]));
+            } else if ("short".equals(types[i])) {
+
+                //stubbing_short = stubbing_short.thenReturn(Short.parseShort(assumptions[i]));
+            } else if ("long".equals(types[i])) {
+
+                //stubbing_long = stubbing_long.thenReturn(Long.parseLong(assumptions[i]));
+            } else if ("float".equals(types[i])) {
+
+                //stubbing_float = stubbing_float.thenReturn(Float.parseFloat(assumptions[i]));
+            } else if ("double".equals(types[i])) {
+
+                //stubbing_double = stubbing_double.thenReturn(Double.parseDouble(assumptions[i]));
+            } else if ("boolean".equals(types[i])) {
+
+                //stubbing_boolean = stubbing_boolean.thenReturn(Boolean.parseBoolean(assumptions[i]));
+            } else if ("char".equals(types[i])) {
+
+                //stubbing_char = stubbing_char.thenReturn((char)Integer.parseInt(assumptions[i]));
+            } else if ("byte".equals(types[i])) {
+
+                //stubbing_byte = stubbing_byte.thenReturn((byte)Integer.parseInt(assumptions[i]));
+                }
+
+            }
+            try {
+                ClassName.main(new String[0]);
+                System.out.println("OK ");
+            } catch (Exception e) {
+                System.out.println(e);
+            }
+        }
+    }
