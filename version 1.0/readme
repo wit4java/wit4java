@@ -1,1 +1,6 @@
+The script is a witness validator for Java.
 
+Before benchmarking:
+Should have networkx package installed: pip install networkx. 
+And configure the path of networkx package in the script: sys.path.append(path_of_networkx).
+Configure this script as an executable program: chmod +x wit4java.py
