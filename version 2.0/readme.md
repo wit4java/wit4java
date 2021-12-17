@@ -4,7 +4,7 @@ wit4java
 
 ### Description
 
-A violation-witness validator for Java. Version 2.0 is recommended. It searches for assumptions to create a unit test case. 
+A violation-witness validator for Java. Version 2.0 is recommended. It searches for assumptions to create a unit test case to reproduce the violation property.
 
 ### Dependencies
 
