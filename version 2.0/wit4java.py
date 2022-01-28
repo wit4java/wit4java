@@ -5,32 +5,27 @@ import subprocess
 from fnmatch import fnmatch
 
 # Add the path of networkx to run benchexec. Should 'pip install networkx' first
-#sys.path.append("/home/tong/.local/lib/python3.8/site-packages")
+# sys.path.append("/home/tong/.local/lib/python3.8/site-packages")
 
 import networkx as nx
 
-
-def takeFirst(elem):
-    return elem[0]
-
-
-def last_str(str):
-    if str.rfind(" ") == -1:
-        return str.strip()
-    else:
-        return str[str.rindex(" ") + 1 :].strip()
-
+# How to call this script:
+# ./wit4java.py --witness witness.graphml source1 source2
+# or
+# ./wit4java.py --version
 
 try:
-    # missing witness or java files
     if len(sys.argv) <= 3:
         if sys.argv[1] == "--version":
             print("1.0")
+        # missing witness or java files
         exit(0)
     else:
         print("wit4java version: 1.0")
         witness_File_Dir = sys.argv[2]
         print("witness: ", witness_File_Dir)
+
+        # find all java source files from inputs
         benchmarks_dir = []
         for i in sys.argv[3:]:
             if ".java" in i:
@@ -55,6 +50,7 @@ try:
             Witness = False
             exit(0)
 
+        # violation-witness validation
         if Witness:
             dict_line_type = {}
             assump = []
@@ -85,7 +81,7 @@ try:
                                 if not os.path.exists(new_benchmark_dir):
                                     os.makedirs(new_benchmark_dir)
                                 break
-
+                    # record verifier call positions and statements
                     with open(benchmark, "r") as fii:
                         with open(
                             os.path.join(new_benchmark_dir, filename), "wt"
@@ -130,7 +126,6 @@ try:
                         # program is a string containing only 'file.java'
                         scope = data[2]["assumption.scope"]
                         startLine = data[2]["startline"]
-
 
                         if program[: program.find(".java")] in scope and dict_line_type[
                             program
