@@ -17,11 +17,11 @@ import networkx as nx
 try:
     if len(sys.argv) <= 3:
         if sys.argv[1] == "--version":
-            print("1.0")
+            print("2.0")
         # missing witness or java files
         exit(0)
     else:
-        print("wit4java version: 1.0")
+        print("wit4java version: 2.0")
         witness_File_Dir = sys.argv[2]
         print("witness: ", witness_File_Dir)
 
