@@ -178,6 +178,8 @@ try:
                     if "novalue" in ass[1]:
                         print("unknown")
                         exit(0)
+                    if "string" in ass[0]:
+                        exit(0)
                     Assumption = Assumption + ";" + ass[1].strip()
 
                 utb = UnitTestBuilder(assump)
