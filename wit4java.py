@@ -9,6 +9,8 @@ from fnmatch import fnmatch
 
 import networkx as nx
 
+from output import UnitTestBuilder
+
 # How to call this script:
 # ./wit4java.py --witness witness.graphml source1 source2
 # or
@@ -178,63 +180,13 @@ try:
                         exit(0)
                     Assumption = Assumption + ";" + ass[1].strip()
 
-                int_type = False
-                short_type = False
-                long_type = False
-                float_type = False
-                double_type = False
-                boolean_type = False
-                char_type = False
-                byte_type = False
+                utb = UnitTestBuilder(assump)
+                utb.write_file('Test.java')
 
-                if "string" in Type:
-                    exit(0)
-                if "int" in Type:
-                    int_type = True
-                if "short" in Type:
-                    short_type = True
-                if "long" in Type:
-                    long_type = True
-                if "float" in Type:
-                    float_type = True
-                if "double" in Type:
-                    double_type = True
-                if "boolean" in Type:
-                    boolean_type = True
-                if "char" in Type:
-                    char_type = True
-                if "byte" in Type:
-                    byte_type = True
-
-                with open("test.txt", "rt") as fin:
-                    with open("test.java", "wt") as fout:
-                        for line in fin:
-                            line = line.replace("Type", Type)
-                            line = line.replace("Assumption", Assumption)
-                            if int_type and "stubbing_int" in line:
-                                line = line.replace("//", "")
-                            if short_type and "stubbing_short" in line:
-                                line = line.replace("//", "")
-                            if long_type and "stubbing_long" in line:
-                                line = line.replace("//", "")
-                            if float_type and "stubbing_float" in line:
-                                line = line.replace("//", "")
-                            if double_type and "stubbing_double" in line:
-                                line = line.replace("//", "")
-                            if boolean_type and "stubbing_boolean" in line:
-                                line = line.replace("//", "")
-                            if char_type and "stubbing_char" in line:
-                                line = line.replace("//", "")
-                            if byte_type and "stubbing_byte" in line:
-                                line = line.replace("//", "")
-
-                            line = line.replace("ClassName", "Main")
-                            fout.write(line)
-
-                cmd = "javac test.java"
+                cmd = "javac Test.java"
                 subprocess.Popen(cmd, shell=True).wait()
 
-                cmd1 = "java -ea test"
+                cmd1 = "java -ea Test"
                 subprocess.Popen(cmd1, shell=True).wait()
 
 except Exception as e:
