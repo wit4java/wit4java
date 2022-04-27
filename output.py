@@ -81,4 +81,4 @@ class UnitTestBuilder():
 
     def build_unit_test(self, path):
         with open(path, "wt") as f:
-            f.writelines(self.gen_unit_test())
+            f.writelines(self._gen_unit_test())

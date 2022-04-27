@@ -183,7 +183,7 @@ try:
                     Assumption = Assumption + ";" + ass[1].strip()
 
                 utb = UnitTestBuilder(assump)
-                utb.write_file('Test.java')
+                utb.build_unit_test('Test.java')
 
                 cmd = "javac Test.java"
                 subprocess.Popen(cmd, shell=True).wait()
