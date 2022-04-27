@@ -60,7 +60,7 @@ class UnitTestBuilder():
     def _gen_stubbing_case_block(self, type):
         return '\ncase "{0}":\n\t{1}\n\tbreak;'.format(type, self.MOCKITO_THEN_RETURNS[type])
 
-    def gen_unit_test(self):
+    def _gen_unit_test(self):
         from textwrap import indent
         content = self.FILE_HEADER
         # Add assumption and types
@@ -79,6 +79,6 @@ class UnitTestBuilder():
         content += '\n}'
         return content
 
-    def write_file(self, path):
+    def build_unit_test(self, path):
         with open(path, "wt") as f:
             f.writelines(self.gen_unit_test())
