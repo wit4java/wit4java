@@ -159,7 +159,7 @@ try:
                     elif program in files:
                         startLine = data[2]["startline"]
 
-                        if dict_line_type[program].__contains__(startLine):
+                        if startLine in dict_line_type[program]:
 
                             assump.append(
                                 list(
