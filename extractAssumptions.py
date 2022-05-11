@@ -46,6 +46,8 @@ def extract_assumptions(witness_file_dir):
 
         if program not in assumptions:
             assumptions[program] = {}
-        assumptions[program][start_line] = assumption_value
+            assumptions[program][start_line] = assumption_value
+        else:
+            assumptions[program][start_line].append(assumption_value)
 
     return assumptions

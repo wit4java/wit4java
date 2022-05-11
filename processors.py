@@ -16,7 +16,7 @@ def _get_lines_to_type(filename):
             search_string = "Verifier.nondet"
             if search_string in line:
                 type = _find_between(line, "nondet", "(")
-                lines_to_type[line_number] = type
+                lines_to_type[line_number] = type.lower()
         return lines_to_type
 
 def process_java_files(path):
@@ -66,9 +66,9 @@ def extract_assumptions(witness_file_dir):
 
     regex = None
     if producer == "GDart":
-        regex = r"= (\d+)|\w+\.equals\(\"(\w*)\"\)"
+        regex = r"= (-?\d*\.?\d+|false|true)|(\w\d)+\.equals\(\"(.*)\"\)"
     else:  # assume producer is JBMC if not specified
-        regex = r"= (\d+|null)\W"
+        regex = r"= (-?\d*\.?\d+|false|true|null)\W"
 
     assumptions = {}
     for assump_edge in filter(lambda edge: ("assumption.scope" in edge[2]), witness_file.edges(data=True)):
@@ -81,10 +81,18 @@ def extract_assumptions(witness_file_dir):
 
         assumption = data["assumption"]
         search_result = re.search(regex, assumption)
-        if search_result is None:
-            continue
+        if search_result is not None:
+            assumption_value = search_result.group(1) or search_result.group(2)
+        else:
+            # Check to see if it is because nondet comes from a function return
+            # this occurs when the assumption.scope field ends in Z and in which
+            # case the assumption value is the whole assumption field
+            if data["assumption.scope"].endswith('Z'):
+                assumption_value = assumption
+            else:
+                continue
 
-        assumption_value = search_result.group(1) or search_result.group(2)
+
         # TODO: Might not be necessary
         if producer != "GDart" and assumption_value == "null":
            assumption_value = None
@@ -92,6 +100,10 @@ def extract_assumptions(witness_file_dir):
         start_line = data["startline"]
         if file_name not in assumptions:
             assumptions[file_name] = {}
-        assumptions[file_name][start_line] = assumption_value
+
+        if start_line not in assumptions[file_name]:
+            assumptions[file_name][start_line] = [assumption_value]
+        else:
+            assumptions[file_name][start_line].append(assumption_value)
 
     return assumptions

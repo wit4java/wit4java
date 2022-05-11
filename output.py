@@ -23,7 +23,7 @@ class UnitTestBuilder():
         'boolean': 'OngoingStubbing <Boolean> stubbing_boolean = Mockito.when(Verifier.nondetBoolean());',
         'char': 'OngoingStubbing <Character> stubbing_char = Mockito.when(Verifier.nondetChar());',
         'byte': 'OngoingStubbing <Byte> stubbing_byte = Mockito.when(Verifier.nondetByte());}',
-        'String': 'OngoingStubbing <String> stubbing_string = Mockito.when(Verifier.nondetString());'
+        'string': 'OngoingStubbing <String> stubbing_string = Mockito.when(Verifier.nondetString());'
     }
 
     MOCKITO_THEN_RETURNS = {
@@ -35,7 +35,7 @@ class UnitTestBuilder():
         'boolean': 'stubbing_boolean = stubbing_boolean.thenReturn(Boolean.parseBoolean(assumptions[i]));',
         'char': 'stubbing_char = stubbing_char.thenReturn((char)Integer.parseInt(assumptions[i]));',
         'byte': 'stubbing_byte = stubbing_byte.thenReturn((byte)Integer.parseInt(assumptions[i]));',
-        'String': 'stubbing_string = stubbing_string.thenReturn(assumptions[i]);'
+        'string': 'stubbing_string = stubbing_string.thenReturn(assumptions[i]);'
     }
 
     def __init__(self, type_assumption_list):
