@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-import sys
 import glob
 
 def _find_between(s, start, end):
