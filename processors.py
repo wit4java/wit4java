@@ -66,7 +66,7 @@ def extract_assumptions(witness_file_dir):
 
     regex = None
     if producer == "GDart":
-        regex = r"= (-?\d*\.?\d+|false|true)|(\w\d)+\.equals\(\"(.*)\"\)"
+        regex = r"= (-?\d*\.?\d+|false|true)|\w+\.equals\(\"(.*)\"\)"
     else:  # assume producer is JBMC if not specified
         regex = r"= (-?\d*\.?\d+|false|true|null)\W"
 
@@ -77,7 +77,7 @@ def extract_assumptions(witness_file_dir):
         file_name = program[program.rfind("/") + 1: program.find(".java")]
         scope = data["assumption.scope"]
         if file_name not in scope:
-            continue;
+            continue
 
         assumption = data["assumption"]
         search_result = re.search(regex, assumption)
