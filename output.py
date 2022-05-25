@@ -22,7 +22,8 @@ class UnitTestBuilder():
         'double': 'OngoingStubbing <Double> stubbing_double = Mockito.when(Verifier.nondetDouble());',
         'boolean': 'OngoingStubbing <Boolean> stubbing_boolean = Mockito.when(Verifier.nondetBoolean());',
         'char': 'OngoingStubbing <Character> stubbing_char = Mockito.when(Verifier.nondetChar());',
-        'byte': 'OngoingStubbing <Byte> stubbing_byte = Mockito.when(Verifier.nondetByte());}'
+        'byte': 'OngoingStubbing <Byte> stubbing_byte = Mockito.when(Verifier.nondetByte());}',
+        'string': 'OngoingStubbing <String> stubbing_string = Mockito.when(Verifier.nondetString());'
     }
 
     MOCKITO_THEN_RETURNS = {
@@ -33,7 +34,8 @@ class UnitTestBuilder():
         'double': 'stubbing_double = stubbing_double.thenReturn(Double.parseDouble(assumptions[i]));',
         'boolean': 'stubbing_boolean = stubbing_boolean.thenReturn(Boolean.parseBoolean(assumptions[i]));',
         'char': 'stubbing_char = stubbing_char.thenReturn((char)Integer.parseInt(assumptions[i]));',
-        'byte': 'stubbing_byte = stubbing_byte.thenReturn((byte)Integer.parseInt(assumptions[i]));'
+        'byte': 'stubbing_byte = stubbing_byte.thenReturn((byte)Integer.parseInt(assumptions[i]));',
+        'string': 'stubbing_string = stubbing_string.thenReturn(assumptions[i]);'
     }
 
     def __init__(self, type_assumption_list):
@@ -41,7 +43,9 @@ class UnitTestBuilder():
         self.assumptions = [tv[1].strip() for tv in type_assumption_list]
 
     def _gen_assumptions_line(self):
-        return '\nString[] assumptions = {"' + '", "'.join(self.assumptions) + '"};'
+        # Map assumptions to string form, mapping None to null
+        string_assumptions = ['"{}"'.format(a) if a is not None else 'null' for a in self.assumptions]
+        return '\nString[] assumptions = {' + ', '.join(string_assumptions) + '};'
 
     def _gen_types_line(self):
         return '\nString[] types = {"' + '", "'.join(self.types) + '"};'
