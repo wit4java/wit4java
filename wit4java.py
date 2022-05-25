@@ -4,7 +4,7 @@ import sys
 import subprocess
 
 # Add the path of networkx to run benchexec. Should 'pip install networkx' first
-sys.path.append("/home/joss/.local/lib/python3.8/site-packages")
+#sys.path.append("/home/joss/.local/lib/python3.8/site-packages")
 
 
 from output import UnitTestBuilder
