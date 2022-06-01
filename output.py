@@ -1,17 +1,16 @@
 class UnitTestBuilder():
-
-    FILE_HEADER = 'import org.mockito.*;'\
-                  '\nimport org.mockito.stubbing.OngoingStubbing;'\
-                  '\nimport org.sosy_lab.sv_benchmarks.Verifier;'\
-                  '\n\npublic class Test {'\
-                  '\n\tpublic static void main(String[] args) {'\
+    FILE_HEADER = 'import org.mockito.*;' \
+                  '\nimport org.mockito.stubbing.OngoingStubbing;' \
+                  '\nimport org.sosy_lab.sv_benchmarks.Verifier;' \
+                  '\n\npublic class Test {' \
+                  '\n\tpublic static void main(String[] args) {' \
                   '\n\t\tMockito.mockStatic(Verifier.class);'
 
-    VIOLATION_BLOCK = '\ntry {'\
-                      '\n\tMain.main(new String[0]);'\
-                      '\n\tSystem.out.println("OK ");'\
-                      '\n} catch (Exception e) {'\
-                      '\n\tSystem.out.println(e);'\
+    VIOLATION_BLOCK = '\ntry {' \
+                      '\n\tMain.main(new String[0]);' \
+                      '\n\tSystem.out.println("OK ");' \
+                      '\n} catch (Exception e) {' \
+                      '\n\tSystem.out.println(e);' \
                       '\n}'
 
     MOCKITO_STUB_INITS = {
