@@ -40,15 +40,17 @@ def process_java_files(path):
 
 # NOTE: pass nothing or "<./>" to search in current directory
 def extract_types(path):
-    files_to_lines_to_type = {}
-
+    types_map = {}
     source_files = [f for f in glob.glob(path + "**/*.java", recursive=True)]
     for filename in source_files:
-        lines_to_type = _get_lines_to_type(filename)
         program_name = filename[filename.rfind("/") + 1: filename.find(".java")]
-        files_to_lines_to_type[program_name] = lines_to_type
-
-    return files_to_lines_to_type
+        with open(filename, "r") as f:
+            for line_number, line in enumerate(f, 1):
+                search_string = "Verifier.nondet"
+                if search_string in line:
+                    type = _find_between(line, "nondet", "(")
+                    types_map[(program_name, line_number)] = type.lower()
+    return types_map
 
 
 def extract_assumptions(witness_file_dir):
@@ -66,11 +68,11 @@ def extract_assumptions(witness_file_dir):
 
     regex = None
     if producer == "GDart":
-        regex = r"= (-?\d*\.?\d+|false|true)|\w+\.equals\(\"(.*)\"\)"
+        regex = r"= (-?\d*\.?\d+|false|true)|\w+\.equals\(\"(.*)\"\)|\w+\.parseDouble\(\"(.*)\"\)|\w+\.parseFloat\(\"(.*)\"\)"
     else:  # assume producer is JBMC if not specified
         regex = r"= (-?\d*\.?\d+|false|true|null)\W"
 
-    assumptions = {}
+    assumptions = []
     for assump_edge in filter(lambda edge: ("assumption.scope" in edge[2]), witness_file.edges(data=True)):
         data = assump_edge[2]
         program = data["originFileName"]
@@ -82,13 +84,15 @@ def extract_assumptions(witness_file_dir):
         assumption = data["assumption"]
         search_result = re.search(regex, assumption)
         if search_result is not None:
-            assumption_value = search_result.group(1) or search_result.group(2)
+            assumption_value = search_result.group(1) or search_result.group(2) or search_result.group(3) or search_result.group(4)
         else:
             # Check to see if it is because nondet comes from a function return
             # this occurs when the assumption.scope field ends in Z and in which
             # case the assumption value is the whole assumption field
-            if data["assumption.scope"].endswith('Z'):
-                assumption_value = assumption
+            regex = regex[2:]
+            search_result = re.search(regex, assumption)
+            if search_result is not None:
+                assumption_value = search_result.group(1) or search_result.group(2)
             else:
                 continue
 
@@ -98,12 +102,17 @@ def extract_assumptions(witness_file_dir):
            assumption_value = None
 
         start_line = data["startline"]
-        if file_name not in assumptions:
-            assumptions[file_name] = {}
-
-        if start_line not in assumptions[file_name]:
-            assumptions[file_name][start_line] = [assumption_value]
-        else:
-            assumptions[file_name][start_line].append(assumption_value)
+        assumptions.append(((file_name, start_line), assumption_value))
 
     return assumptions
+
+def construct_type_assumption_pairs(file_line_type_map, assumptions_list):
+    # Get all assumption positions
+    assumptions_position_list = [assumption_position for (assumption_position, _ ) in assumptions_list]
+    # Check each nondet call has greater than one assumption
+    if not all(position in assumptions_position_list for position in file_line_type_map.keys()):
+        raise ValueError('Not all nondet calls have been assigned assumptions, cannot verify.')
+    # Map each assumption to its respective
+    type_assumption_pairs = [(file_line_type_map[position], value) for (position, value) in assumptions_list
+                             if position in file_line_type_map]
+    return type_assumption_pairs
