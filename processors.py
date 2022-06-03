@@ -191,11 +191,6 @@ class JavaFileProcessor(Processor):
 
 
 def construct_type_assumption_pairs(file_line_type_map, assumptions_list):
-    # Get all assumption positions
-    assumptions_position_list = [assumption_position for (assumption_position, _) in assumptions_list]
-    # Check each nondet call has greater than one assumption
-    if not all(position in assumptions_position_list for position in file_line_type_map.keys()):
-        raise ValueError('Not all nondet calls have been assigned assumptions, cannot verify.')
     # Map each assumption to its respective
     type_assumption_pairs = [(file_line_type_map[position], value) for (position, value) in assumptions_list
                              if position in file_line_type_map]
