@@ -145,9 +145,17 @@ class JavaFileProcessor(Processor):
                 raise ValueError('Multiple classes for {0} given.'.format(check_file))
             elif sum(files_exists) == 1:
                 # Return full path of the only existing file definition
-                return self.source_files[files_exists.index(True)]
+                return [self.source_files[files_exists.index(True)]]
 
             # Check in packages
+            # Check for wildcard imports
+            if check_file.endswith('/*'):
+                wildcard_import = check_file.replace('/*', '')
+                dir_exists = [p.endswith(wildcard_import) for p in self.package_paths]
+                if sum(dir_exists) == 1:
+                    package = self.package_paths[dir_exists.index(True)]
+                    return [f for f in glob.glob(package + "/**/*.java", recursive=True)]
+
             full_paths = ["{0}.java".format(os.path.join(dir, check_file)) for dir in self.package_paths]
             files_exists = [os.path.exists(f_path) for f_path in full_paths]
             # Check there is only one definition for an import file and if so add to stack to check
@@ -158,8 +166,8 @@ class JavaFileProcessor(Processor):
                 raise ValueError('Multiple classes for {0} given in classpath.'.format(check_file))
             else:
                 # Return full path of the only existing file definition
-                return full_paths[files_exists.index(True)]
-        return None
+                return [full_paths[files_exists.index(True)]]
+        return []
 
     def extract(self):
         types_map = {}
@@ -170,9 +178,10 @@ class JavaFileProcessor(Processor):
             with open(filename, "r") as f:
                 for line_number, line in enumerate(f, 1):
                     if line.strip().startswith('import'):
-                        file = self._check_valid_import(line)
-                        if file is not None and file not in extraction_stack:
-                            extraction_stack[file] = 0
+                        files = self._check_valid_import(line)
+                        for file in files:
+                            if file is not None and file not in extraction_stack:
+                                extraction_stack[file] = 0
 
                     search_string = "Verifier.nondet"
                     if search_string in line:
