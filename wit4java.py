@@ -6,7 +6,7 @@ import tempfile
 
 from shutil import rmtree
 from output import UnitTestBuilder
-from processors_opt import JavaFileProcessor, WitnessProcessor, construct_type_assumption_pairs
+from processors import JavaFileProcessor, WitnessProcessor, construct_type_assumption_pairs
 
 # How to call this script:
 # ./wit4java.py --witness witness.graphml source1 source2
