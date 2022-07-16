@@ -5,8 +5,7 @@ import subprocess
 import tempfile
 
 from shutil import rmtree
-from output.builders import UnitTestBuilder
-from output.builders import VerifierBuilder
+from output.builders import VerifierBuilder, build_unit_test
 from processors import JavaFileProcessor, WitnessProcessor, construct_type_assumption_pairs
 
 sys.path.append("/home/joss/.local/lib/python3.8/site-packages")
@@ -31,11 +30,11 @@ try:
         benchmark_path = sys.argv[-1]
 
         # Create temporary directory for easier cleanup
-        dirpath = tempfile.mkdtemp()
+        tmp_dir = tempfile.mkdtemp()
 
         # Instantiate file processors
-        jfp = JavaFileProcessor(dirpath, benchmark_path, package_paths)
-        wfp = WitnessProcessor(dirpath, witness_path)
+        jfp = JavaFileProcessor(tmp_dir, benchmark_path, package_paths)
+        wfp = WitnessProcessor(tmp_dir, witness_path)
 
         # Need to preprocess and move to current directory to utilise mockito
         jfp.preprocess()
@@ -52,22 +51,29 @@ try:
         )
 
         # Check for each type from java file we have an assumptions
-        utb = UnitTestBuilder(type_assumption_pairs)
-        test_path = os.path.join(dirpath, 'Test.java')
-        utb.build_unit_test(test_path)
+        test_path = os.path.join(tmp_dir, 'Test.java')
+        build_unit_test(test_path)
 
         vhb = VerifierBuilder(type_assumption_pairs)
-        harness_path = os.path.join(dirpath, 'org/sosy_lab/sv_benchmarks/Verifier.java')
+        harness_path = os.path.join(tmp_dir, 'org/sosy_lab/sv_benchmarks/Verifier.java')
         vhb.build_test_harness(harness_path)
 
-        cmd = f"javac {test_path}"
-        subprocess.Popen(cmd, cwd=dirpath, shell=True).wait()
+        # Compile Test class
 
-        cmd1 = "java -ea Test"
-        subprocess.Popen(cmd1, cwd=dirpath, shell=True).wait()
-
+        with subprocess.Popen(['javac', '-sourcepath', tmp_dir, test_path],
+                                stdout=subprocess.PIPE, stderr=subprocess.PIPE) as p:
+            p.wait()
+        # Run test
+        with subprocess.Popen(['java', '-cp', tmp_dir, '-ea', 'Test'],
+                                stdout=subprocess.PIPE, stderr=subprocess.PIPE) as p:
+            out = p.stdout.read().decode("utf-8")
+            err = p.stderr.read().decode("utf-8")
+            if err:
+                print(err)
+            else:
+                print(out)
         # Teardown moved files
-        rmtree(dirpath)
+        rmtree(tmp_dir)
 
 
 except BaseException as e:

@@ -1,5 +1,3 @@
-import org.mockito.*;
-import org.mockito.stubbing.OngoingStubbing;
 import org.sosy_lab.sv_benchmarks.Verifier;
 
 public class Test {

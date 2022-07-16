@@ -1,21 +1,19 @@
 import os
 
 
-class UnitTestBuilder():
+def _gen_unit_test():
+    resource_path = os.path.join(
+        os.path.dirname(os.path.realpath(__file__)),
+        'resources/Test.java'
+    )
+    with open(resource_path, 'r') as file:
+        content = file.readlines()
+    return content
 
-    @staticmethod
-    def _gen_unit_test():
-        resource_path = os.path.join(
-            os.path.dirname(os.path.realpath(__file__)),
-            'resources/Test.java'
-        )
-        with open(resource_path, 'r') as file:
-            content = file.readlines()
-        return content
 
-    def build_unit_test(self, path):
-        with open(path, "wt") as f:
-            f.writelines(self._gen_unit_test())
+def build_unit_test(path):
+    with open(path, "wt") as f:
+        f.writelines(_gen_unit_test())
 
 
 class VerifierBuilder():
