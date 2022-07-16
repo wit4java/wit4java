@@ -1,109 +1,200 @@
+import sys
+from abc import ABC, abstractmethod
 import glob
 import re
-import networkx as nx
-import os
 from distutils.dir_util import copy_tree
+import os
+import networkx as nx
+
+sys.path.append("/home/joss/.local/lib/python3.8/site-packages/networkx")
+
+class Processor(ABC):
+    """
+    An abstract class representing the base functionality for a processor
+    """
+    def __init__(self, working_dir):
+        self.working_dir = working_dir
+
+    @abstractmethod
+    def preprocess(self):
+        pass
+
+    @abstractmethod
+    def extract(self):
+        pass
+
+    def write_to_working_dir(self, path, data):
+        """
+        Writes some data to the working directory at some given path offset
+        :param path: The offset path from the working directory
+        :param data: The data to be written
+        :return: The new place the data was written to.
+        """
+        # Check if incoming path involves a new subdirectory
+        subdir = os.path.join(self.working_dir, os.path.dirname(path))
+        if not os.path.exists(subdir):
+            os.makedirs(subdir)
+        new_path = os.path.join(self.working_dir, path)
+        with open(new_path, 'w') as file:
+            file.write(data)
+
+        return new_path
+
+
+def _extract_value_from_assumption(assumption, regex):
+    """
+    Extracts an assumption value using a regex
+    :param assumption: The string containing the variable assignment to have value extracted
+    :param regex: The regular expression used to extract the value
+    :return: The extracted assumption value or None if not there
+    """
+    search_result = re.search(regex, assumption)
+    if search_result is not None:
+        matches = [sr for sr in search_result.groups() if sr is not None]
+        # Match the last capture group if multiple matches
+        assumption_value = matches[-1]
+    else:
+        # Check to see if it is because nondet comes from a function return
+        # and in which case it is not assigned to a variable so remove = match from regex
+        regex = regex[2:]
+        search_result = re.search(regex, assumption)
+        if search_result is not None:
+            matches = [sr for sr in search_result.groups() if sr is not None]
+            # Match the last capture group if multiple matches
+            assumption_value = matches[-1]
+        else:
+            assumption_value = None
+
+    return assumption_value
+
+
+class WitnessProcessor(Processor):
+    """
+    A class representing the witness processor
+    """
+    def __init__(self, working_dir, witness_path):
+        super().__init__(working_dir)
+        self.producer = None
+        self.witness_path = witness_path
+
+    def preprocess(self):
+        """
+
+        """
+        with open(self.witness_path, 'r') as file:
+            data = file.read()
+        # Check for malformed XML strings
+        cleaned_data = re.sub(r"\(\"(.*)<(.*)>(.*)\"\)", r'("\1&lt;\2&gt;\3")', data)
+        if cleaned_data != data:
+            path = "cleaned_witness.grapmhl"
+            self.witness_path = self.write_to_working_dir(path, cleaned_data)
+
+    def extract(self):
+        """
+
+        """
+        try:
+            witness_file = nx.read_graphml(self.witness_path)
+        except Exception:
+            raise ValueError('Witness file is not formatted correctly.')
+
+        self.producer = witness_file.graph["producer"] if "producer" in witness_file.graph else None
+        assumptions = []
+        # GDart uses different syntax for numeric types
+        if self.producer == "GDart":
+            regex = r"= (-?\d*\.?\d+|false|true)|\w+\.equals\(\"(.*)\"\)|\w+\.parseDouble\(\"(.*)\"\)|\w+\.parseFloat\(\"(.*)\"\)"
+        else:
+            regex = r"= (-?\d*\.?\d+|false|true|null)\W"
+
+        for assump_edge in filter(lambda edge: ("assumption.scope" in edge[2]), witness_file.edges(data=True)):
+            data = assump_edge[2]
+            program = data["originFileName"]
+            file_name = program[program.rfind("/") + 1: program.find(".java")]
+            scope = data["assumption.scope"]
+            if file_name not in scope:
+                continue
+            assumption = data["assumption"]
+            start_line = data["startline"]
+            assumption_value = _extract_value_from_assumption(assumption, regex)
+            if assumption_value is not None:
+                if self.producer != "GDart" and assumption_value == "null":
+                    assumption_value = None
+                assumptions.append(((file_name, start_line), assumption_value))
+        return assumptions
 
 
 def _find_between(s, start, end):
     return (s.split(start))[1].split(end)[0]
 
 
-def _get_lines_to_type(filename):
-    with open(filename, "r") as f:
-        lines_to_type = {}
-        for line_number, line in enumerate(f, 1):
-            search_string = "Verifier.nondet"
-            if search_string in line:
-                type = _find_between(line, "nondet", "(")
-                lines_to_type[line_number] = type.lower()
-        return lines_to_type
+class JavaFileProcessor(Processor):
+    def __init__(self, working_dir, benchmark_path, package_paths):
+        super().__init__(working_dir)
+        self.benchmark_path = benchmark_path
+        self.source_files = [f for f in glob.glob(self.benchmark_path + "/**/*.java", recursive=True)]
+        self.package_paths = package_paths
 
-def process_java_files(path):
-    source_files = [f for f in glob.glob(path + "**/*.java", recursive=True)]
-    for file in source_files:
-        with open(file, "rt") as fi:
-            for line in fi:
-                if line.strip().find("package") == 0:
-                    new_benchmark_dir = (
-                        line.strip()
-                            .replace(".", "/")
-                            .replace(";", "")
-                            .replace("package", "")
-                            .replace(" ", "")
-                    )
-                    if not os.path.exists(new_benchmark_dir):
-                        os.makedirs(new_benchmark_dir)
-                    break
+    def preprocess(self):
+        copy_tree(self.benchmark_path, self.working_dir)
+        for package in self.package_paths:
+            copy_tree(package, self.working_dir)
 
-    return copy_tree(path, './')
+    def _check_valid_import(self, import_line):
+        check_file = import_line.strip().replace(".", "/").replace(";", "").replace("import", "").replace(' ', '')
+        if not check_file.startswith('java'):
+            # Check in working directory
+            files_exists = [source_f.endswith("{0}.java".format(check_file)) for source_f in self.source_files]
+            if sum(files_exists) > 1:
+                raise ValueError('Multiple classes for {0} given.'.format(check_file))
+            elif sum(files_exists) == 1:
+                # Return full path of the only existing file definition
+                return [self.source_files[files_exists.index(True)]]
 
-# NOTE: pass nothing or "<./>" to search in current directory
-def extract_types(path):
-    files_to_lines_to_type = {}
+            # Check in packages
+            # Check for wildcard imports
+            if check_file.endswith('/*'):
+                wildcard_import = check_file.replace('/*', '')
+                dir_exists = [p.endswith(wildcard_import) for p in self.package_paths]
+                if sum(dir_exists) == 1:
+                    package = self.package_paths[dir_exists.index(True)]
+                    return [f for f in glob.glob(package + "/**/*.java", recursive=True)]
 
-    source_files = [f for f in glob.glob(path + "**/*.java", recursive=True)]
-    for filename in source_files:
-        lines_to_type = _get_lines_to_type(filename)
-        program_name = filename[filename.rfind("/") + 1: filename.find(".java")]
-        files_to_lines_to_type[program_name] = lines_to_type
-
-    return files_to_lines_to_type
-
-
-def extract_assumptions(witness_file_dir):
-    witness_file = None
-    try:
-        witness_file = nx.read_graphml(witness_file_dir)
-    except Exception as e:
-        print("Exception: could not read witness file")
-        print(e)
-        exit(0)
-
-    producer = None
-    if "producer" in witness_file.graph:
-        producer = witness_file.graph["producer"]
-
-    regex = None
-    if producer == "GDart":
-        regex = r"= (-?\d*\.?\d+|false|true)|\w+\.equals\(\"(.*)\"\)"
-    else:  # assume producer is JBMC if not specified
-        regex = r"= (-?\d*\.?\d+|false|true|null)\W"
-
-    assumptions = {}
-    for assump_edge in filter(lambda edge: ("assumption.scope" in edge[2]), witness_file.edges(data=True)):
-        data = assump_edge[2]
-        program = data["originFileName"]
-        file_name = program[program.rfind("/") + 1: program.find(".java")]
-        scope = data["assumption.scope"]
-        if file_name not in scope:
-            continue
-
-        assumption = data["assumption"]
-        search_result = re.search(regex, assumption)
-        if search_result is not None:
-            assumption_value = search_result.group(1) or search_result.group(2)
-        else:
-            # Check to see if it is because nondet comes from a function return
-            # this occurs when the assumption.scope field ends in Z and in which
-            # case the assumption value is the whole assumption field
-            if data["assumption.scope"].endswith('Z'):
-                assumption_value = assumption
+            full_paths = ["{0}.java".format(os.path.join(dir, check_file)) for dir in self.package_paths]
+            files_exists = [os.path.exists(f_path) for f_path in full_paths]
+            # Check there is only one definition for an import file and if so add to stack to check
+            # for possible nondet calls
+            if not any(files_exists):
+                raise ValueError('No class for {0} given in classpath.'.format(check_file))
+            elif sum(files_exists) > 1:
+                raise ValueError('Multiple classes for {0} given in classpath.'.format(check_file))
             else:
-                continue
+                # Return full path of the only existing file definition
+                return [full_paths[files_exists.index(True)]]
+        return []
+
+    def extract(self):
+        types_map = {}
+        extraction_stack = dict.fromkeys(self.source_files, 0)
+        while len(extraction_stack) > 0:
+            filename, _ = extraction_stack.popitem()
+            program_name = filename[filename.rfind("/") + 1: filename.find(".java")]
+            with open(filename, "r") as f:
+                for line_number, line in enumerate(f, 1):
+                    if line.strip().startswith('import'):
+                        files = self._check_valid_import(line)
+                        for file in files:
+                            if file is not None and file not in extraction_stack:
+                                extraction_stack[file] = 0
+
+                    search_string = "Verifier.nondet"
+                    if search_string in line:
+                        type = _find_between(line, "nondet", "(")
+                        types_map[(program_name, line_number)] = type.lower()
+        return types_map
 
 
-        # TODO: Might not be necessary
-        if producer != "GDart" and assumption_value == "null":
-           assumption_value = None
-
-        start_line = data["startline"]
-        if file_name not in assumptions:
-            assumptions[file_name] = {}
-
-        if start_line not in assumptions[file_name]:
-            assumptions[file_name][start_line] = [assumption_value]
-        else:
-            assumptions[file_name][start_line].append(assumption_value)
-
-    return assumptions
+def construct_type_assumption_pairs(file_line_type_map, assumptions_list):
+    # Map each assumption to its respective
+    type_assumption_pairs = [(file_line_type_map[position], value) for (position, value) in assumptions_list
+                             if position in file_line_type_map]
+    return type_assumption_pairs

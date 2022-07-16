@@ -1,6 +1,6 @@
-# Project Title 
+# Wit4Java: A Violation-Witness Validator for Java Verifiers
 
-wit4java
+
 
 ### Description
 
