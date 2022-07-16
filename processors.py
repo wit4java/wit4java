@@ -2,10 +2,11 @@ import sys
 from abc import ABC, abstractmethod
 import glob
 import re
-import networkx as nx
-import os
 from distutils.dir_util import copy_tree
+import os
+import networkx as nx
 
+sys.path.append("/home/joss/.local/lib/python3.8/site-packages/networkx")
 
 class Processor(ABC):
     """
@@ -135,6 +136,8 @@ class JavaFileProcessor(Processor):
 
     def preprocess(self):
         copy_tree(self.benchmark_path, self.working_dir)
+        for package in self.package_paths:
+            copy_tree(package, self.working_dir)
 
     def _check_valid_import(self, import_line):
         check_file = import_line.strip().replace(".", "/").replace(";", "").replace("import", "").replace(' ', '')

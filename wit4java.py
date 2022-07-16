@@ -5,8 +5,11 @@ import subprocess
 import tempfile
 
 from shutil import rmtree
-from output import UnitTestBuilder
+from output.builders import UnitTestBuilder
+from output.builders import VerifierBuilder
 from processors import JavaFileProcessor, WitnessProcessor, construct_type_assumption_pairs
+
+sys.path.append("/home/joss/.local/lib/python3.8/site-packages")
 
 # How to call this script:
 # ./wit4java.py --witness witness.graphml source1 source2
@@ -18,7 +21,7 @@ try:
         if sys.argv[1] == "--version":
             print("2.0")
         # missing witness or java files
-        exit(0)
+        sys.exit(0)
     else:
         print("wit4java version: 2.0")
         witness_path = sys.argv[2]
@@ -29,6 +32,8 @@ try:
 
         # Create temporary directory for easier cleanup
         dirpath = tempfile.mkdtemp()
+
+        # Instantiate file processors
         jfp = JavaFileProcessor(dirpath, benchmark_path, package_paths)
         wfp = WitnessProcessor(dirpath, witness_path)
 
@@ -41,17 +46,24 @@ try:
         assumptions_list = wfp.extract()
 
         # Construct ordered (type , assumption) pairs
-        type_assumption_pairs = construct_type_assumption_pairs(file_line_type_map, assumptions_list)
+        type_assumption_pairs = construct_type_assumption_pairs(
+            file_line_type_map,
+            assumptions_list
+        )
 
         # Check for each type from java file we have an assumptions
         utb = UnitTestBuilder(type_assumption_pairs)
         test_path = os.path.join(dirpath, 'Test.java')
         utb.build_unit_test(test_path)
 
-        cmd = "javac -cp {0}:{1}:{2} {3}".format(os.getenv('CLASSPATH'), ':'.join(package_paths), dirpath, test_path)
+        vhb = VerifierBuilder(type_assumption_pairs)
+        harness_path = os.path.join(dirpath, 'org/sosy_lab/sv_benchmarks/Verifier.java')
+        vhb.build_test_harness(harness_path)
+
+        cmd = f"javac {test_path}"
         subprocess.Popen(cmd, cwd=dirpath, shell=True).wait()
 
-        cmd1 = "java -ea Test".format(dirpath)
+        cmd1 = "java -ea Test"
         subprocess.Popen(cmd1, cwd=dirpath, shell=True).wait()
 
         # Teardown moved files
@@ -60,4 +72,4 @@ try:
 
 except BaseException as e:
     print('Exception: ' + str(e))
-exit(0)
+sys.exit()
