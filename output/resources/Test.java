@@ -1,5 +1,3 @@
-import org.sosy_lab.sv_benchmarks.Verifier;
-
 public class Test {
   public static void main(String[] args) {
     try {

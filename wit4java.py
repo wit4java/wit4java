@@ -59,23 +59,28 @@ try:
         vhb.build_test_harness(harness_path)
 
         # Compile Test class
-
-        with subprocess.Popen(['javac', '-sourcepath', tmp_dir, test_path],
-                                stdout=subprocess.PIPE, stderr=subprocess.PIPE) as p:
+        compile_args = ['javac', '-sourcepath', tmp_dir, test_path]
+        with subprocess.Popen(compile_args,
+                              stdout=subprocess.PIPE, stderr=subprocess.PIPE) as p:
             p.wait()
         # Run test
-        with subprocess.Popen(['java', '-cp', tmp_dir, '-ea', 'Test'],
-                                stdout=subprocess.PIPE, stderr=subprocess.PIPE) as p:
+        run_args = ['java', '-cp', tmp_dir, '-ea', 'Test']
+        with subprocess.Popen(run_args,
+                              stdout=subprocess.PIPE, stderr=subprocess.PIPE) as p:
             out = p.stdout.read().decode("utf-8")
             err = p.stderr.read().decode("utf-8")
+            print()
             if err:
-                print(err)
+                if 'Exception in thread "main" java.lang.AssertionError' not in err:
+                    print(err)
+                else:
+                    print(f'wit4java Exception: {err}')
             else:
                 print(out)
         # Teardown moved files
         rmtree(tmp_dir)
 
 
-except BaseException as e:
-    print('Exception: ' + str(e))
+except RuntimeError as e:
+    print('wit4java Exception: ' + str(e))
 sys.exit()
