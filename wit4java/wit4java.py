@@ -7,6 +7,7 @@ import tempfile
 from shutil import rmtree
 from wit4java.output.builders import VerifierBuilder, build_unit_test
 from wit4java.processors import JavaFileProcessor, WitnessProcessor, construct_type_assumption_pairs
+from wit4java import __version__
 
 
 # How to call this script:
@@ -18,11 +19,11 @@ def main():
     try:
         if len(sys.argv) <= 3:
             if sys.argv[1] == "--version":
-                print("2.0")
+                print(__version__)
             # missing witness or java files
             sys.exit(0)
         else:
-            print("wit4java version: 2.0")
+            print(f'wit4java version: {__version__}')
             witness_path = sys.argv[2]
             print("witness: ", witness_path)
             # Have to do this for benchexec
