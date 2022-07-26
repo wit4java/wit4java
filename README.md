@@ -4,16 +4,11 @@
 
 ### Description
 
-A violation-witness validator for Java. Version 2.0 is recommended. It searches for assumptions to create a unit test case to reproduce the violation property. 
+Modern verification tools report a violation witness amidst verification if a bug is encountered. To check the validity of the counterexample wit4java can be used for Java-based verifiers. 
 
-### Dependencies
+The tool employs *execution-based validation* to assert the violation of a witness. This process involves extracting information on the assumptions of the verifier from the [standardised exchange format for violation witnesses](https://github.com/sosy-lab/sv-witnesses/blob/main/README-GraphML.md) and building a test harness to provide a concrete execution of the program. The tool then executes the test harness on the code under verification and can either confirm or reject the violation witness if the relevant assertion is reached.
 
-- Python 3
-- Java
-- NetworkX
-- Mockito 3.4
-
-### How to run
+### Usage
 ```
 ./wit4java.py –witness <path-to-sv-witnesses>/witness.graphml <path-to-sv-benchmarks>/java/jbmc-regression/someprogram
 ```
