@@ -8,6 +8,9 @@ Modern verification tools report a violation witness amidst verification if a bu
 
 The tool employs *execution-based validation* to assert the violation of a witness. This process involves extracting information on the assumptions of the verifier from the [standardised exchange format for violation witnesses](https://github.com/sosy-lab/sv-witnesses/blob/main/README-GraphML.md) and building a test harness to provide a concrete execution of the program. The tool then executes the test harness on the code under verification and can either confirm or reject the violation witness if the relevant assertion is reached.
 
+### Literature
+
+- [Wit4Java: A violation-witness validator for Java verifiers (competition contribution)](https://doi.org/10.1007/978-3-030-99527-0_36) by Wu, T., Schrammel, P., & Cordeiro, L. C. International Conference on Tools and Algorithms for the Construction and Analysis of Systems. Springer, Cham, 2022. Springer [doi.org/10.1007/978-3-030-99527-0_36](https://doi.org/10.1007/978-3-030-99527-0_36)
 ### Usage
 ```
 ./wit4java.py –witness <path-to-sv-witnesses>/witness.graphml <path-to-sv-benchmarks>/java/jbmc-regression/someprogram
