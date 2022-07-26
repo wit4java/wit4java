@@ -1,4 +1,3 @@
-import sys
 from abc import ABC, abstractmethod
 import glob
 import re
@@ -6,7 +5,6 @@ from distutils.dir_util import copy_tree
 import os
 import networkx as nx
 
-sys.path.append("/home/joss/.local/lib/python3.8/site-packages/networkx")
 
 class Processor(ABC):
     """

@@ -1,6 +1,5 @@
 import os
 
-
 def _gen_unit_test():
     resource_path = os.path.join(
         os.path.dirname(os.path.realpath(__file__)),
