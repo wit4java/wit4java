@@ -1,6 +1,6 @@
 # Wit4Java: A Violation-Witness Validator for Java Verifiers
 
-
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/7aa7c9bff3c5458d9af4b055f97af8ce)](https://www.codacy.com/gh/wit4java/wit4java/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=wit4java/wit4java&amp;utm_campaign=Badge_Grade)
 
 ### Description
 
