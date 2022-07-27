@@ -4,14 +4,15 @@ import unittest
 from shutil import rmtree
 from os.path import exists
 
-from parameterized import parameterized
+import sys
+sys.path.append('../..')
 
+from parameterized import parameterized
 from wit4java.testharness import TestHarness
 
 
 class TestModule(unittest.TestCase):
     EMPTY_ASSUMPTIONS = []
-    SINGLE_ASSUMTPTION = [1]
 
     def assertFileEqual(self, expected_path, actual_path):
         with open(expected_path, 'r', encoding='utf-8') as expected_file:
