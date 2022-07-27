@@ -1,7 +1,11 @@
-#!/usr/bin/env python3
+"""
+ This file is part of wit4java, an execution-based violation-witness validator for Java
+ https://github.com/wit4java/wit4java.
+
+ This module deals with the main functionality of the tool
+"""
 import os
 import sys
-import subprocess
 import tempfile
 
 from shutil import rmtree
@@ -9,18 +13,26 @@ from shutil import rmtree
 import argparse
 
 from wit4java.testharness import TestHarness
-from wit4java.processors import JavaFileProcessor, WitnessProcessor, construct_type_assumption_pairs
+from wit4java.processors import JavaFileProcessor, WitnessProcessor
 from wit4java import __version__
 
 
 def dir_path(path):
+    """
+    Checks if a path is a valid directory
+    :param path: Potential directory
+    :return: The original path if valid
+    """
     if os.path.isdir(path):
         return path
-    else:
-        raise argparse.ArgumentTypeError(f"readable_dir:{path} is not a valid path")
+    raise argparse.ArgumentTypeError(f"readable_dir:{path} is not a valid path")
 
 
-def create_argument_parser():
+def create_argument_parser() -> argparse.ArgumentParser:
+    """
+    Creates a parser for the command-line options.
+    @return: An argparse.ArgumentParser instance
+    """
     parser = argparse.ArgumentParser(
         description="""
                    Validate a given Java program with a witness conforming to the appropriate SV-COMP
@@ -78,7 +90,7 @@ def main():
         wfp.preprocess()
 
         # Process files to get type mapping and assumption list
-        assumptions = wfp.assumptions
+        assumptions = wfp.extract_assumptions()
 
         # Construct tests harness
         test_harness = TestHarness(tmp_dir)
@@ -89,8 +101,8 @@ def main():
         # Teardown moved files
         rmtree(tmp_dir)
 
-    except RuntimeError as e:
-        print(f'wit4java: Could not validate witness \n{e}')
+    except RuntimeError as err:
+        print(f'wit4java: Could not validate witness \n{err}')
     sys.exit()
 
 
