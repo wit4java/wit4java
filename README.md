@@ -13,7 +13,23 @@ The tool employs *execution-based validation* to assert the violation of a witne
 - [Wit4Java: A violation-witness validator for Java verifiers (competition contribution)](https://doi.org/10.1007/978-3-030-99527-0_36) by Wu, T., Schrammel, P., & Cordeiro, L. C. International Conference on Tools and Algorithms for the Construction and Analysis of Systems. Springer, Cham, 2022. Springer [doi.org/10.1007/978-3-030-99527-0_36](https://doi.org/10.1007/978-3-030-99527-0_36)
 ### Usage
 ```
-./wit4java.py –witness <path-to-sv-witnesses>/witness.graphml <path-to-sv-benchmarks>/java/jbmc-regression/someprogram
+usage: wit4java [-h] [--packages [PACKAGE_PATHS [PACKAGE_PATHS ...]]]
+                --witness WITNESS_FILE [--version]
+                benchmark
+
+Validate a given Java program with a witness conforming to the appropriate SV-COMP exchange format.
+
+positional arguments:
+  benchmark             Path to the benchmark directory
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --packages [PACKAGE_PATHS [PACKAGE_PATHS ...]]
+                        Path to the packages used by the benchmark
+  --witness WITNESS_FILE
+                        Path to the witness file. Must conform to the exchange
+                        format
+  --version             show program's version number and exit
 ```
 
 ### Benchmark Tool-info module
@@ -26,6 +42,10 @@ Tong Wu (University of Manchester, United Kingdom) wutonguom@gmail.com
 Lucas Cordeiro (University of Manchester, United Kingdom) lucas.cordeiro@manchester.ac.uk
 
 Peter Schrammel (University of Sussex, United Kingdom) P.Schrammel@sussex.ac.uk
+
+### Maintainers 
+
+Joss Moffatt (University of Manchester, United Kingdom) josshmoffatt@gmail.com
 
 ### Version History
 - 1.0

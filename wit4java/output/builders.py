@@ -1,6 +1,5 @@
 import os
 
-
 def _gen_unit_test():
     resource_path = os.path.join(
         os.path.dirname(os.path.realpath(__file__)),
@@ -16,7 +15,7 @@ def build_unit_test(path):
         f.writelines(_gen_unit_test())
 
 
-class VerifierBuilder():
+class TestHarnessBuilder():
 
     def __init__(self, type_assumption_list):
         self.assumptions = [tv[1].strip() for tv in type_assumption_list]
@@ -35,8 +34,8 @@ class VerifierBuilder():
         with open(resource_path, 'r') as file:
             # read a list of lines into data
             data = file.readlines()
-        assumption_line = data.index('  #assumptionList\n')
-        data[assumption_line] = '  static String[] assumptionList = {' + ', '.join(string_assumptions) + '};\n'
+        assumption_line = data.index('  static String[] assumptionList = {};\n')
+        data[assumption_line] = data[assumption_line].replace('{}', '{' + ', '.join(string_assumptions) + '}')
 
         with open(path, 'w') as file:
             file.writelines(data)

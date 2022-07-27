@@ -5,7 +5,7 @@ import java.util.Queue;
 
 public final class Verifier {
 
-  #assumptionList
+  static String[] assumptionList = {};
   public static Queue<String> assumptions = new LinkedList<String>();
   static {
     for(String assumption: assumptionList) {

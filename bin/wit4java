@@ -1,0 +1,11 @@
+#!/usr/bin/env python3
+import os
+import sys
+
+sys.dont_write_bytecode = True  # prevent creation of .pyc files
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+
+import wit4java.wit4java
+
+if __name__ == "__main__":
+    sys.exit(wit4java.wit4java.main())
