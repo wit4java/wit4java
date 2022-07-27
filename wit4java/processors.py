@@ -87,6 +87,7 @@ class WitnessProcessor(Processor):
             path = "cleaned_witness.grapmhl"
             self.witness_path = self.write_to_working_dir(path, cleaned_data)
 
+    @property
     def extract(self):
         """
 
@@ -100,10 +101,10 @@ class WitnessProcessor(Processor):
         assumptions = []
         # GDart uses different syntax for numeric types
         if self.producer == "GDart":
-            regex = r"= (-?\d*\.?\d+|false|true)|\w+\.equals\(\"(.*)\"\)|\w+\.parseDouble\(\"(.*)\"\)|\w+\.parseFloat\(\"(.*)\"\)"
+            regex = r"= (-?\d*\.?\d+|false|true)|\w+\.equals\(\"(.*)\"\)|\w+\.parseDouble\(\"(" \
+                    r".*)\"\)|\w+\.parseFloat\(\"(.*)\"\)"
         else:
             regex = r"= (-?\d*\.?\d+|false|true|null)\W"
-
         for assump_edge in filter(lambda edge: ("assumption.scope" in edge[2]), witness_file.edges(data=True)):
             data = assump_edge[2]
             program = data["originFileName"]
@@ -162,9 +163,9 @@ class JavaFileProcessor(Processor):
             # Check there is only one definition for an import file and if so add to stack to check
             # for possible nondet calls
             if not any(files_exists):
-                raise ValueError('No class for {0} given in classpath.'.format(check_file))
+                raise ValueError(f'No class for {check_file} given in classpath.')
             elif sum(files_exists) > 1:
-                raise ValueError('Multiple classes for {0} given in classpath.'.format(check_file))
+                raise ValueError(f'Multiple classes for {check_file} given in classpath.')
             else:
                 # Return full path of the only existing file definition
                 return [full_paths[files_exists.index(True)]]
