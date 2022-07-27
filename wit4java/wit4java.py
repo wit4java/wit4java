@@ -23,7 +23,7 @@ def dir_path(path):
 def create_argument_parser():
     parser = argparse.ArgumentParser(
         description="""
-                   Validate a given Java program with a witness conforming to the appropriate exchange format SV-COMP
+                   Validate a given Java program with a witness conforming to the appropriate SV-COMP
                    exchange format.
                """,
     )
@@ -48,8 +48,7 @@ def create_argument_parser():
         required=True,
         type=str,
         action="store",
-        help='Path to the witness file. Must conform to the following format '
-             'https://github.com/sosy-lab/sv-witnesses/blob/main/README-GraphML.md.'
+        help='Path to the witness file. Must conform to the exchange format'
     )
 
     parser.add_argument(
@@ -60,10 +59,11 @@ def create_argument_parser():
 
 
 def main():
+    parser = create_argument_parser()
+    config = parser.parse_args(sys.argv[1:])
+    config = vars(config)
     try:
-        parser = create_argument_parser()
-        config = parser.parse_args(sys.argv[1:])
-        config = vars(config)
+        print(config)
         print(f'wit4java version: {__version__}')
         print("witness: ", config['witness_file'])
 
@@ -121,7 +121,7 @@ def main():
         # Teardown moved files
         rmtree(tmp_dir)
 
-    except BaseException as e:
+    except RuntimeError as e:
         print(f'wit4java: Could not validate witness \n{e}')
     sys.exit()
 
