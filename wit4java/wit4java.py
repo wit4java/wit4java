@@ -8,7 +8,7 @@ from shutil import rmtree
 
 import argparse
 
-from wit4java.output.builders import TestHarnessBuilder, build_unit_test
+from wit4java.testharness import TestHarness
 from wit4java.processors import JavaFileProcessor, WitnessProcessor, construct_type_assumption_pairs
 from wit4java import __version__
 
@@ -63,7 +63,6 @@ def main():
     config = parser.parse_args(sys.argv[1:])
     config = vars(config)
     try:
-        print(config)
         print(f'wit4java version: {__version__}')
         print("witness: ", config['witness_file'])
 
@@ -79,44 +78,13 @@ def main():
         wfp.preprocess()
 
         # Process files to get type mapping and assumption list
-        file_line_type_map = jfp.extract()
-        assumptions_list = wfp.extract
+        assumptions = wfp.assumptions
 
-        # Construct ordered (type , assumption) pairs
-        type_assumption_pairs = construct_type_assumption_pairs(
-            file_line_type_map,
-            assumptions_list
-        )
-
-        # Check for each type from java file we have an assumptions
-        test_path = os.path.join(tmp_dir, 'Test.java')
-        build_unit_test(test_path)
-
-        vhb = TestHarnessBuilder(type_assumption_pairs)
-        harness_path = os.path.join(tmp_dir, 'org/sosy_lab/sv_benchmarks/Verifier.java')
-        vhb.build_test_harness(harness_path)
-
-        # Compile Test class
-        compile_args = ['javac', '-sourcepath', tmp_dir, test_path]
-        with subprocess.Popen(compile_args,
-                              stdout=subprocess.PIPE, stderr=subprocess.PIPE) as p:
-            p.wait()
-
-        # Run test
-        run_args = ['java', '-cp', tmp_dir, '-ea', 'Test']
-        with subprocess.Popen(run_args,
-                              stdout=subprocess.PIPE, stderr=subprocess.PIPE) as p:
-            out = p.stdout.read().decode("utf-8")
-            err = p.stderr.read().decode("utf-8")
-
-            # Set output to be stderr if there is some erroneous output
-            out = err if err else out
-            if 'Exception in thread "main" java.lang.AssertionError' in out:
-                print('wit4java: Witness Correct')
-            elif 'wit4java: Witness Spurious' in out:
-                print('wit4java: Witness Spurious')
-            else:
-                print('wit4java: Could not validate witness')
+        # Construct test harness
+        test_harness = TestHarness(tmp_dir)
+        test_harness.build_test_harness(assumptions)
+        outcome = test_harness.run_test_harness()
+        print(outcome)
 
         # Teardown moved files
         rmtree(tmp_dir)
