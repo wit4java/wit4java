@@ -10,7 +10,7 @@ import subprocess
 from typing import List, Tuple
 
 
-class TestHarness():
+class TestHarness:
     """
     The class TestBuilder manages all the test creation and compilation
     of the test harness
@@ -27,7 +27,7 @@ class TestHarness():
 
     def __init__(self, directory):
         """
-        The constructor of TestBuilder collects information on the output directory.
+        The constructor of TestBuilder collects information on the output directory
         :param directory: Directory that the harness will write to
         """
         self.directory = directory
@@ -52,7 +52,7 @@ class TestHarness():
         return content
 
     @staticmethod
-    def _write_data(path: str, data:  List[str]):
+    def _write_data(path: str, data:  List[str]) -> None:
         """
         Handles writing data to a specific file
         :param path: Path of a file to write to
@@ -79,7 +79,7 @@ class TestHarness():
             err = proc.stderr.read().decode("utf-8")
         return out, err
 
-    def build_test_harness(self, assumptions):
+    def build_test_harness(self, assumptions) -> None:
         """
          Constructs and compiles the test harness consisting of
          the unit test and the test verifier
@@ -89,14 +89,14 @@ class TestHarness():
         self._build_test_verifier(assumptions)
         _, _ = self._compile_test_harness()
 
-    def _build_unit_test(self) -> object:
+    def _build_unit_test(self) -> None:
         """
         Constructs the unit test from Test.java
         """
         test_data = self._read_data(self.TEST_RESOURCE_PATH)
         self._write_data(self.test_path, test_data)
 
-    def _build_test_verifier(self, assumptions):
+    def _build_test_verifier(self, assumptions) -> None:
         """
         Constructs the test verifier from a list of assumptions
         and Verifier.java
@@ -117,7 +117,7 @@ class TestHarness():
         )
         self._write_data(verifier_path, verifier_data)
 
-    def _compile_test_harness(self):
+    def _compile_test_harness(self) -> Tuple[str, str]:
         """
         Compiles the test harness
         :return: stdout and stderr from compilation
@@ -126,7 +126,7 @@ class TestHarness():
         out, err = self._run_command(compile_args)
         return out, err
 
-    def run_test_harness(self):
+    def run_test_harness(self) -> str:
         """
         Runs the test harness and reports the outcome of the validation execution
         :return: The validation result
@@ -138,5 +138,5 @@ class TestHarness():
         if 'Exception in thread "main" java.lang.AssertionError' in out:
             return 'wit4java: Witness Correct'
         if 'wit4java: Witness Spurious' in out:
-            return  'wit4java: Witness Spurious'
+            return 'wit4java: Witness Spurious'
         return 'wit4java: Could not validate witness'
