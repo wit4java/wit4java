@@ -11,7 +11,7 @@ from parameterized import parameterized
 from wit4java.testharness import TestHarness
 
 
-class TestModule(unittest.TestCase):
+class TestTestHarness(unittest.TestCase):
     EMPTY_ASSUMPTIONS = []
 
     def assertFileEqual(self, expected_path, actual_path):
