@@ -80,7 +80,7 @@ def main():
         # Process files to get type mapping and assumption list
         assumptions = wfp.assumptions
 
-        # Construct test harness
+        # Construct tests harness
         test_harness = TestHarness(tmp_dir)
         test_harness.build_test_harness(assumptions)
         outcome = test_harness.run_test_harness()

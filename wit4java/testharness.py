@@ -12,8 +12,8 @@ from typing import List, Tuple
 
 class TestHarness:
     """
-    The class TestBuilder manages all the test creation and compilation
-    of the test harness
+    The class TestBuilder manages all the tests creation and compilation
+    of the tests harness
     """
     VERIFIER_PACKAGE = 'org/sosy_lab/sv_benchmarks'
     VERIFIER_RESOURCE_PATH = os.path.join(
@@ -81,8 +81,8 @@ class TestHarness:
 
     def build_test_harness(self, assumptions) -> None:
         """
-         Constructs and compiles the test harness consisting of
-         the unit test and the test verifier
+         Constructs and compiles the tests harness consisting of
+         the unit tests and the tests verifier
         :param assumptions: Assumptions extracted from the witness
         """
         self._build_unit_test()
@@ -91,14 +91,14 @@ class TestHarness:
 
     def _build_unit_test(self) -> None:
         """
-        Constructs the unit test from Test.java
+        Constructs the unit tests from Test.java
         """
         test_data = self._read_data(self.TEST_RESOURCE_PATH)
         self._write_data(self.test_path, test_data)
 
     def _build_test_verifier(self, assumptions) -> None:
         """
-        Constructs the test verifier from a list of assumptions
+        Constructs the tests verifier from a list of assumptions
         and Verifier.java
         :param assumptions: Assumptions extracted from the witness
         """
@@ -119,7 +119,7 @@ class TestHarness:
 
     def _compile_test_harness(self) -> Tuple[str, str]:
         """
-        Compiles the test harness
+        Compiles the tests harness
         :return: stdout and stderr from compilation
         """
         compile_args = ['javac', '-sourcepath', self.directory, self.test_path]
@@ -128,7 +128,7 @@ class TestHarness:
 
     def run_test_harness(self) -> str:
         """
-        Runs the test harness and reports the outcome of the validation execution
+        Runs the tests harness and reports the outcome of the validation execution
         :return: The validation result
         """
         run_args = ['java', '-cp', self.directory, '-ea', 'Test']
