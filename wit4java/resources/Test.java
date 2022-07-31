@@ -5,6 +5,7 @@ public class Test {
       System.out.println("wit4java: Witness Spurious");
     } catch (Exception e) {
       System.out.println(e);
+      e.printStackTrace();
     }
   }
 }

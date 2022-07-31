@@ -13,7 +13,7 @@ from shutil import rmtree
 import argparse
 
 from wit4java.testharness import TestHarness
-from wit4java.processors import JavaFileProcessor, WitnessProcessor
+from wit4java.processors import JavaFileProcessor, WitnessProcessor, filter_assumptions
 from wit4java import __version__
 
 
@@ -91,17 +91,18 @@ def main():
 
         # Process files to get type mapping and assumption list
         assumptions = wfp.extract_assumptions()
-
+        nondet_mappings = jfp.extract_nondet_mappings()
+        assumption_values = filter_assumptions(nondet_mappings, assumptions)
         # Construct tests harness
         test_harness = TestHarness(tmp_dir)
-        test_harness.build_test_harness(assumptions)
+        test_harness.build_test_harness(assumption_values)
         outcome = test_harness.run_test_harness()
         print(outcome)
 
         # Teardown moved files
         rmtree(tmp_dir)
 
-    except RuntimeError as err:
+    except BaseException as err:
         print(f'wit4java: Could not validate witness \n{err}')
     sys.exit()
 
