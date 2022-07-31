@@ -31,11 +31,6 @@ optional arguments:
                         format
   --version             show program's version number and exit
 ```
-
-### Benchmark Tool-info module
-
-[wit4java.py](https://github.com/sosy-lab/benchexec/blob/main/benchexec/tools/wit4java.py)
-
 ### Authors
 Tong Wu (University of Manchester, United Kingdom) wutonguom@gmail.com
 
@@ -47,8 +42,6 @@ Peter Schrammel (University of Sussex, United Kingdom) P.Schrammel@sussex.ac.uk
 
 Joss Moffatt (University of Manchester, United Kingdom) josshmoffatt@gmail.com
 
-### Version History
-- 1.0
-Naive
-- 2.0
-Apply Mockito framework
+### Links
+- [Wit4java Version History](CHANGELOG.md)
+- [Benchexec Tool Info Module](https://github.com/sosy-lab/benchexec/blob/main/benchexec/tools/wit4java.py)
