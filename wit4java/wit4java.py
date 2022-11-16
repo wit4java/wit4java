@@ -86,6 +86,7 @@ def main():
 
         # Create temporary directory for easier cleanup
         directory = '.' if config['local_dir'] else tempfile.mkdtemp()
+
         # Instantiate file processors
         jfp = JavaFileProcessor(directory, config['benchmark'], config['package_paths'])
         wfp = WitnessProcessor(directory, config['witness_file'])
