@@ -63,6 +63,8 @@ def create_argument_parser() -> argparse.ArgumentParser:
         help='Path to the witness file. Must conform to the exchange format'
     )
 
+    parser.add_argument('--local-dir', help='perform all of the processing in the current directory', action='store_true')
+
     parser.add_argument(
         "--version", action="version", version="%(prog)s " + __version__
     )
@@ -79,11 +81,10 @@ def main():
         print("witness: ", config['witness_file'])
 
         # Create temporary directory for easier cleanup
-        tmp_dir = tempfile.mkdtemp()
-
+        directory = '.' if config['local_dir'] else tempfile.mkdtemp()
         # Instantiate file processors
-        jfp = JavaFileProcessor(tmp_dir, config['benchmark'], config['package_paths'])
-        wfp = WitnessProcessor(tmp_dir, config['witness_file'])
+        jfp = JavaFileProcessor(directory, config['benchmark'], config['package_paths'])
+        wfp = WitnessProcessor(directory, config['witness_file'])
 
         # Need to preprocess and move to current directory to utilise mockito
         jfp.preprocess()
@@ -94,13 +95,14 @@ def main():
         nondet_mappings = jfp.extract_nondet_mappings()
         assumption_values = filter_assumptions(nondet_mappings, assumptions)
         # Construct tests harness
-        test_harness = TestHarness(tmp_dir)
+        test_harness = TestHarness(directory)
         test_harness.build_test_harness(assumption_values)
         outcome = test_harness.run_test_harness()
         print(outcome)
 
-        # Teardown moved files
-        rmtree(tmp_dir)
+        # Teardown moved files if not in local directory
+        if not config['local_dir']:
+            rmtree(directory)
 
     except BaseException as err:
         print(f'wit4java: Could not validate witness \n{err}')
