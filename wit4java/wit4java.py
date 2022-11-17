@@ -63,7 +63,11 @@ def create_argument_parser() -> argparse.ArgumentParser:
         help='Path to the witness file. Must conform to the exchange format'
     )
 
-    parser.add_argument('--local-dir', help='perform all of the processing in the current directory', action='store_true')
+    parser.add_argument(
+        '--local-dir',
+        help='perform all of the processing in the current directory',
+        action='store_true'
+    )
 
     parser.add_argument(
         "--version", action="version", version="%(prog)s " + __version__
@@ -82,7 +86,7 @@ def main():
 
         # Create temporary directory for easier cleanup
         directory = '.' if config['local_dir'] else tempfile.mkdtemp()
-        print(directory)
+
         # Instantiate file processors
         jfp = JavaFileProcessor(directory, config['benchmark'], config['package_paths'])
         wfp = WitnessProcessor(directory, config['witness_file'])
