@@ -85,7 +85,10 @@ def main():
         print("witness: ", config['witness_file'])
 
         # Create temporary directory for easier cleanup
-        directory = '.' if config['local_dir'] else tempfile.mkdtemp()
+        if not os.path.exists('output'):
+            os.makedirs('output')
+            
+        directory = './output' if config['local_dir'] else tempfile.mkdtemp()
 
         # Instantiate file processors
         jfp = JavaFileProcessor(directory, config['benchmark'], config['package_paths'])
@@ -106,8 +109,8 @@ def main():
         print(outcome)
 
         # Teardown moved files if not in local directory
-        if not config['local_dir']:
-            rmtree(directory)
+        #if not config['local_dir']:
+        #rmtree(directory)
 
     except BaseException as err:
         print(f'wit4java: Could not validate witness \n{err}')
