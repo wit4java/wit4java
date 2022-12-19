@@ -13,9 +13,7 @@ The tool employs *execution-based validation* to assert the violation of a witne
 - [Wit4Java: A violation-witness validator for Java verifiers (competition contribution)](https://doi.org/10.1007/978-3-030-99527-0_36) by Wu, T., Schrammel, P., & Cordeiro, L. C. International Conference on Tools and Algorithms for the Construction and Analysis of Systems. Springer, Cham, 2022. Springer [doi.org/10.1007/978-3-030-99527-0_36](https://doi.org/10.1007/978-3-030-99527-0_36)
 ### Usage
 ```
-usage: wit4java [-h] [--packages [PACKAGE_PATHS [PACKAGE_PATHS ...]]]
-                --witness WITNESS_FILE [--version]
-                benchmark
+usage: ./esbmc-wrapper.py -p propertyFile --concurrencyFlagPredictor model.sav --arch 32 benchmark
 
 Validate a given Java program with a witness conforming to the appropriate SV-COMP exchange format.
 
