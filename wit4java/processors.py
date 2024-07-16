@@ -150,36 +150,54 @@ class JavaFileProcessor(Processor):
             copy_tree(package, self.working_dir)
 
     def _check_valid_import(self, import_line):
-        check_file = import_line.strip().replace(".", "/").replace(";", "").replace("import", "").replace(' ', '')
+        # Check if the import statement includes 'static'
+        is_static = 'static' in import_line
+    
+        # Clean up the import statement:
+        # - Replace dots with slashes
+        # - Remove semicolons, 'import', 'static', and spaces
+        check_file = (
+            import_line.strip()
+            .replace(".", "/")
+            .replace(";", "")
+            .replace("import", "")
+            .replace("static", "")
+            .replace(' ', '')
+        )
+    
+        # If the import is not from the java standard library
         if not check_file.startswith('java'):
-            # Check in working directory
-            files_exists = [source_f.endswith("{0}.java".format(check_file)) for source_f in self.source_files]
-            if sum(files_exists) > 1:
-                raise ValueError('Multiple classes for {0} given.'.format(check_file))
-            if sum(files_exists) == 1:
-                # Return full path of the only existing file definition
-                return [self.source_files[files_exists.index(True)]]
-
-            # Check in packages
-            # Check for wildcard imports
-            if check_file.endswith('/*'):
-                wildcard_import = check_file.replace('/*', '')
+            if not is_static:
+                # Check if the corresponding file exists in the working directory
+                files_exists = [source_f.endswith(f"{check_file}.java") for source_f in self.source_files]
+                if sum(files_exists) > 1:
+                    raise ValueError(f'Multiple classes for {check_file} given.')
+                if sum(files_exists) == 1:
+                    # Return the full path of the only existing file
+                    return [self.source_files[files_exists.index(True)]]
+    
+            # Handle wildcard imports
+            if check_file.endswith('/*') or (is_static and check_file.endswith('*')):
+                wildcard_import = check_file.replace('/*', '').replace('*', '')
                 dir_exists = [p.endswith(wildcard_import) for p in self.package_paths]
                 if sum(dir_exists) == 1:
                     package = self.package_paths[dir_exists.index(True)]
                     return [f for f in glob.glob(package + "/**/*.java", recursive=True)]
-
-            full_paths = ["{0}.java".format(os.path.join(dir, check_file)) for dir in self.package_paths]
+    
+            # Check if the file exists in the specified package paths
+            full_paths = [f"{os.path.join(dir, check_file)}.java" for dir in self.package_paths]
             files_exists = [os.path.exists(f_path) for f_path in full_paths]
-            # Check there is only one definition for an import file and if so add to stack to check
-            # for possible nondet calls
+    
+            # Ensure there is only one definition for the imported file
             if not any(files_exists):
-                raise ValueError('No class for {0} given in classpath.'.format(check_file))
+                raise ValueError(f'No class for {check_file} given in classpath.')
             elif sum(files_exists) > 1:
-                raise ValueError('Multiple classes for {0} given in classpath.'.format(check_file))
+                raise ValueError(f'Multiple classes for {check_file} given in classpath.')
             else:
-                # Return full path of the only existing file definition
+                # Return the full path of the only existing file
                 return [full_paths[files_exists.index(True)]]
+    
+        # If it's a java standard library class, do not process it
         return []
 
     def extract_nondet_mappings(self):
