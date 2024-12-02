@@ -109,12 +109,13 @@ class WitnessProcessor(Processor):
 
         self.producer = witness_file.graph["producer"] if "producer" in witness_file.graph else None
         assumptions = []
-        # GDart uses different syntax for numeric types
-        if self.producer == 'GDart':
-            regex = r"= (-?\d*\.?\d+|false|true)|\w+\.equals\(\"(.*)\"\)|\w+\.parseDouble\(\"(" \
-                    r".*)\"\)|\w+\.parseFloat\(\"(.*)\"\)"
-        else:
-            regex = r"= ((\S+)|(-?\d*\.?\d+[L]?)|(false|true|null))"
+        # Should not bias for GDart in SVCOMP.
+        # if self.producer == 'GDart':
+        #     regex = r"= (-?\d*\.?\d+|false|true)|\w+\.equals\(\"(.*)\"\)|\w+\.parseDouble\(\"(" \
+        #             r".*)\"\)|\w+\.parseFloat\(\"(.*)\"\)"
+        # else:
+        #     regex = r"= ((\S+)|(-?\d*\.?\d+[L]?)|(false|true|null))"
+        regex = r"= (-?\d*\.?\d+[L]?|false|true|null|\S+)|\w+\.equals\(\"(.*)\"\)|\w+\.parseDouble\(\"(.*)\"\)|\w+\.parseFloat\(\"(.*)\"\)"
         for assumption_edge in filter(
                 lambda edge: ('assumption.scope' in edge[2]),
                 witness_file.edges(data=True)
