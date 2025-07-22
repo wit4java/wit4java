@@ -96,7 +96,9 @@ def main():
 
         # Instantiate file processors
         jfp = JavaFileProcessor(directory, config["benchmark"], config["package_paths"])
-        wfp = WitnessProcessor(directory, config["witness_file"])
+        wfp = WitnessProcessor(
+            directory, config["witness_file"], json_input=config["json_input"]
+        )
 
         # Need to preprocess and move to current directory to utilise mockito
         jfp.preprocess()

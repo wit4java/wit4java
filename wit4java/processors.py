@@ -51,10 +51,11 @@ class WitnessProcessor(Processor):
     A class representing the witness processor
     """
 
-    def __init__(self, working_dir, witness_path):
+    def __init__(self, working_dir, witness_path, json_input=False):
         super().__init__(working_dir)
         self.producer = None
         self.witness_path = witness_path
+        self.json_input = json_input
 
     def preprocess(self) -> None:
         """
