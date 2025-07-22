@@ -4,6 +4,7 @@
 
  This module deals with the processing of the witness, benchmark and packages
 """
+
 import glob
 from abc import ABC, abstractmethod
 import re
@@ -11,6 +12,7 @@ from distutils.dir_util import copy_tree
 import os
 import networkx as nx
 import javalang
+
 
 class Processor(ABC):
     """
@@ -38,7 +40,7 @@ class Processor(ABC):
         if not os.path.exists(subdir):
             os.makedirs(subdir)
         new_path = os.path.join(self.working_dir, path)
-        with open(new_path, 'w', encoding='utf-8') as file:
+        with open(new_path, "w", encoding="utf-8") as file:
             file.write(data)
 
         return new_path
@@ -58,7 +60,7 @@ class WitnessProcessor(Processor):
         """
         Preprocess the witness to avoid any unformatted XML
         """
-        with open(self.witness_path, 'r', encoding='utf-8') as file:
+        with open(self.witness_path, "r", encoding="utf-8") as file:
             data = file.read()
         # Check for malformed XML strings
         cleaned_data = re.sub(r"\(\"(.*)<(.*)>(.*)\"\)", r'("\1&lt;\2&gt;\3")', data)
@@ -91,11 +93,11 @@ class WitnessProcessor(Processor):
             else:
                 assumption_value = None
         # Strip trailing semi colon if has been missed by regex
-        if assumption_value.endswith(';'):
+        if assumption_value.endswith(";"):
             assumption_value = assumption_value[:-1]
         # TODO Extract into new parser class and have methods handling specific edge values
-        if assumption_value == 'Double.NaN':
-            assumption_value = 'NaN'
+        if assumption_value == "Double.NaN":
+            assumption_value = "NaN"
         return assumption_value
 
     def extract_assumptions(self):
@@ -105,9 +107,11 @@ class WitnessProcessor(Processor):
         try:
             witness_file = nx.read_graphml(self.witness_path)
         except Exception as exc:
-            raise ValueError('Witness file is not formatted correctly.') from exc
+            raise ValueError("Witness file is not formatted correctly.") from exc
 
-        self.producer = witness_file.graph["producer"] if "producer" in witness_file.graph else None
+        self.producer = (
+            witness_file.graph["producer"] if "producer" in witness_file.graph else None
+        )
         assumptions = []
         # Should not bias for GDart in SVCOMP.
         # if self.producer == 'GDart':
@@ -117,20 +121,21 @@ class WitnessProcessor(Processor):
         #     regex = r"= ((\S+)|(-?\d*\.?\d+[L]?)|(false|true|null))"
         regex = r"= (-?\d*\.?\d+[L]?|false|true|null|\S+)|\w+\.equals\(\"(.*)\"\)|\w+\.parseDouble\(\"(.*)\"\)|\w+\.parseFloat\(\"(.*)\"\)"
         for assumption_edge in filter(
-                lambda edge: ('assumption.scope' in edge[2]),
-                witness_file.edges(data=True)
+            lambda edge: ("assumption.scope" in edge[2]), witness_file.edges(data=True)
         ):
             data = assumption_edge[2]
-            program = data['originFileName']
-            file_name = program[program.rfind("/") + 1: program.find(".java")]
-            scope = data['assumption.scope']
+            program = data["originFileName"]
+            file_name = program[program.rfind("/") + 1 : program.find(".java")]
+            scope = data["assumption.scope"]
             if file_name not in scope:
                 continue
-            assumption_value = self._extract_value_from_assumption(data['assumption'], regex)
+            assumption_value = self._extract_value_from_assumption(
+                data["assumption"], regex
+            )
             if assumption_value is not None:
-                if self.producer != 'GDart' and assumption_value == 'null':
+                if self.producer != "GDart" and assumption_value == "null":
                     assumption_value = None
-                assumptions.append(((file_name, data['startline']), assumption_value))
+                assumptions.append(((file_name, data["startline"]), assumption_value))
         return assumptions
 
 
@@ -143,7 +148,9 @@ class JavaFileProcessor(Processor):
         super().__init__(working_dir)
         self.benchmark_path = benchmark_path
         self.package_paths = package_paths
-        self.source_files = [f for f in glob.glob(self.benchmark_path + "/**/*.java", recursive=True)]
+        self.source_files = [
+            f for f in glob.glob(self.benchmark_path + "/**/*.java", recursive=True)
+        ]
 
     def preprocess(self):
         copy_tree(self.benchmark_path, self.working_dir)
@@ -151,33 +158,51 @@ class JavaFileProcessor(Processor):
             copy_tree(package, self.working_dir)
 
     def _check_valid_import(self, import_line):
-        check_file = import_line.strip().replace(".", "/").replace(";", "").replace("import", "").replace(' ', '')
-        if not check_file.startswith('java'):
+        check_file = (
+            import_line.strip()
+            .replace(".", "/")
+            .replace(";", "")
+            .replace("import", "")
+            .replace(" ", "")
+        )
+        if not check_file.startswith("java"):
             # Check in working directory
-            files_exists = [source_f.endswith("{0}.java".format(check_file)) for source_f in self.source_files]
+            files_exists = [
+                source_f.endswith("{0}.java".format(check_file))
+                for source_f in self.source_files
+            ]
             if sum(files_exists) > 1:
-                raise ValueError('Multiple classes for {0} given.'.format(check_file))
+                raise ValueError("Multiple classes for {0} given.".format(check_file))
             if sum(files_exists) == 1:
                 # Return full path of the only existing file definition
                 return [self.source_files[files_exists.index(True)]]
 
             # Check in packages
             # Check for wildcard imports
-            if check_file.endswith('/*'):
-                wildcard_import = check_file.replace('/*', '')
+            if check_file.endswith("/*"):
+                wildcard_import = check_file.replace("/*", "")
                 dir_exists = [p.endswith(wildcard_import) for p in self.package_paths]
                 if sum(dir_exists) == 1:
                     package = self.package_paths[dir_exists.index(True)]
-                    return [f for f in glob.glob(package + "/**/*.java", recursive=True)]
+                    return [
+                        f for f in glob.glob(package + "/**/*.java", recursive=True)
+                    ]
 
-            full_paths = ["{0}.java".format(os.path.join(dir, check_file)) for dir in self.package_paths]
+            full_paths = [
+                "{0}.java".format(os.path.join(dir, check_file))
+                for dir in self.package_paths
+            ]
             files_exists = [os.path.exists(f_path) for f_path in full_paths]
             # Check there is only one definition for an import file and if so add to stack to check
             # for possible nondet calls
             if not any(files_exists):
-                raise ValueError('No class for {0} given in classpath.'.format(check_file))
+                raise ValueError(
+                    "No class for {0} given in classpath.".format(check_file)
+                )
             elif sum(files_exists) > 1:
-                raise ValueError('Multiple classes for {0} given in classpath.'.format(check_file))
+                raise ValueError(
+                    "Multiple classes for {0} given in classpath.".format(check_file)
+                )
             else:
                 # Return full path of the only existing file definition
                 return [full_paths[files_exists.index(True)]]
@@ -192,12 +217,12 @@ class JavaFileProcessor(Processor):
         while len(extraction_stack) > 0:
             filename, _ = extraction_stack.popitem()
             finished_set[filename] = 0
-            program_name = filename[filename.rfind("/") + 1: filename.find(".java")]
-            with open(filename, 'r', encoding='utf-8') as file:
+            program_name = filename[filename.rfind("/") + 1 : filename.find(".java")]
+            with open(filename, "r", encoding="utf-8") as file:
                 data = file.read()
             # Dont need to check the Verifier class
             # TODO: Change Tool definition to not pass it
-            if program_name == 'Verifier':
+            if program_name == "Verifier":
                 continue
             try:
                 tree = javalang.parse.parse(data)
@@ -207,25 +232,34 @@ class JavaFileProcessor(Processor):
             for import_node in tree.imports:
                 files = self._check_valid_import(import_node.path)
                 for file in files:
-                    if file is not None and file not in extraction_stack and file not in finished_set:
+                    if (
+                        file is not None
+                        and file not in extraction_stack
+                        and file not in finished_set
+                    ):
                         extraction_stack[file] = 0
             # Look for nondet Calls
             for _, node in tree.filter(javalang.tree.MethodInvocation):
-                if (node is not None
+                if (
+                    node is not None
                     and node.qualifier is not None
-                    and 'Verifier' in node.qualifier
+                    and "Verifier" in node.qualifier
                 ):
-                    nondet_type = node.member.replace('nondet', '')
+                    nondet_type = node.member.replace("nondet", "")
                     types_map[(program_name, node.position.line)] = nondet_type.lower()
             # Check if any nondet calls are from returns from methods
             for _, node in tree.filter(javalang.tree.MethodDeclaration):
                 if node.body is None or len(node.body) == 0:
                     continue
                 statement = node.body[0]
-                if(type(statement) == javalang.tree.ReturnStatement
+                if (
+                    type(statement) == javalang.tree.ReturnStatement
                     and (program_name, statement.position.line) in types_map
                 ):
-                    nondet_functions_map[node.name] = (program_name, statement.position.line)
+                    nondet_functions_map[node.name] = (
+                        program_name,
+                        statement.position.line,
+                    )
 
             # Add any nondet returning functions to list of nondet function calls
             for _, node in tree.filter(javalang.tree.MethodInvocation):
@@ -243,5 +277,7 @@ def filter_assumptions(nondet_mappings, assumptions_list):
     :param assumptions_list: A list of assumptions
     :return: A list of assumptions values that come from nondet functions
     """
-    filtered_assumptions = filter(lambda assumption: (assumption[0] in nondet_mappings), assumptions_list)
+    filtered_assumptions = filter(
+        lambda assumption: (assumption[0] in nondet_mappings), assumptions_list
+    )
     return list(map(lambda assumption: assumption[1], filtered_assumptions))
