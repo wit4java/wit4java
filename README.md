@@ -40,6 +40,8 @@ Peter Schrammel (University of Sussex, United Kingdom) P.Schrammel@sussex.ac.uk
 
 ### Maintainers 
 
+Tong Wu (University of Manchester, United Kingdom) wutonguom@gmail.com
+
 Joss Moffatt (University of Manchester, United Kingdom) josshmoffatt@gmail.com
 
 ### Links
