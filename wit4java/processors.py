@@ -156,8 +156,9 @@ class JavaFileProcessor(Processor):
 
     def preprocess(self):
         copy_tree(self.benchmark_path, self.working_dir)
-        for package in self.package_paths:
-            copy_tree(package, self.working_dir)
+        if self.package_paths:
+            for package in self.package_paths:
+                copy_tree(package, self.working_dir)
 
     def _check_valid_import(self, import_line):
         check_file = (
